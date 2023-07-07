@@ -1,0 +1,23 @@
+{
+  "name": "wordle-api",
+  "version": "0.0.1",
+  "description": "API for Wordle created by Daniel Kearsley-Brown",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "env-cmd -f ./.env nodemon app.js"
+  },
+  "author": "Daniel Kearsley-Brown",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "env-cmd": "^10.1.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.1",
+    "jsonwebtoken": "^9.0.1",
+    "mongodb": "^5.7.0",
+    "mongoose": "^7.3.2",
+    "nodemon": "^1.14.9",
+    "validator": "^13.9.0"
+  }
+}
