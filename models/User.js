@@ -59,6 +59,18 @@ userSchema.statics.findByCredentials = async (username, password) => {
 	return user
 }
 
+userSchema.statics.deleteUser = async (userID) => {
+	var id = new mongoose.Types.ObjectId(userID)
+
+	const user = await User.deleteOne({"_id": id})
+
+	if (!user) {
+		return false
+	}
+	
+	return true
+}
+
 // Tokens
 
 userSchema.statics.createAccessToken = async (userID) => {
@@ -101,7 +113,7 @@ userSchema.statics.deleteRefreshToken = async (userID, refreshToken) => {
 	}
 }
 
-userSchema.statics.deleteAllRefreshToken = async (userID) => {
+userSchema.statics.deleteAllRefreshTokens = async (userID) => {
 	try {
 		return await User.updateOne(
 			{"_id": userID},
