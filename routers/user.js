@@ -47,8 +47,13 @@ router.post('/user/login', loginRateLimit, async(req, res) => {
 			return res.status(401).send({error: "Login Failed! Check your Credentials"})
 		}
 
+		// Tokens
+		const userID = user._id
+		const accessToken = await User.createAccessToken(userID)
+		const refreshToken = await User.createRefreshToken(userID)
+
 		console.log(`Status 200: ${username} successfully logged in!`)
-		res.status(200).send({user})
+		res.status(200).send({userID: userID, accessToken: accessToken, refreshToken: refreshToken})
 	} catch (errors) {
 		console.log(`Status 400: Login failed for ${req.body.username}`)
 		console.log(errors)

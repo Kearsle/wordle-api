@@ -59,5 +59,70 @@ userSchema.statics.findByCredentials = async (username, password) => {
 	return user
 }
 
+// Tokens
+
+userSchema.statics.createAccessToken = async (userID) => {
+	const accessToken = jwt.sign({
+		userID: userID
+	}, process.env.ACCESS_TOKEN_SECRET, {
+		expiresIn: '1h' //Test Expiry Time
+	})
+	return accessToken
+}
+
+userSchema.statics.createRefreshToken = async (userID) => {
+	const refreshToken = jwt.sign({
+		userID: userID
+	}, process.env.REFRESH_TOKEN_SECRET, {
+		expiresIn: '1d' //Test Expiry Time
+	})
+
+	try {
+		await User.updateOne(
+			{"_id": userID},
+			{$push: {"tokens": {"token": refreshToken}}}
+		)
+	} catch (error)
+	{
+		throw new Error({error: "Failed to create refresh token."})
+	}
+
+	return refreshToken
+}
+
+userSchema.statics.deleteRefreshToken = async (userID, refreshToken) => {
+	try {
+		return await User.updateOne(
+			{"_id": userID},
+			{ $pull: {"tokens": {"token": refreshToken}}}
+		)
+	} catch (error) {
+		throw new Error({error: "Failed to delete refresh token."})
+	}
+}
+
+userSchema.statics.deleteAllRefreshToken = async (userID) => {
+	try {
+		return await User.updateOne(
+			{"_id": userID},
+			{ $set: {"tokens": []}}
+		)
+	} catch (error) {
+		throw new Error({error: "Failed to delete all refresh token."})
+	}
+}
+
+userSchema.statics.checkRefreshToken = async (userID, refreshToken) => {
+	const user = await User.findOne({"_id": userID})
+	if (!user) {
+		return null
+	}
+	try {
+		return await user.tokens.some(token => token.token === refreshToken)
+	} catch (error) {
+		return null
+	}
+}
+
 const User = mongoose.model('User', userSchema)
 module.exports = User
