@@ -1,6 +1,18 @@
 const express = require('express')
 const User = require('../models/User')
 const router = express.Router()
+const rateLimit = require('express-rate-limit')
+
+const loginRateLimit = rateLimit({
+	windowMs: 2 * 60 * 1000,
+	max: 10,
+	message: {error: "Too many login attempts. Please try again later."}
+})
+const registerRateLimit = rateLimit({
+	windowMs: 5 * 60 * 1000,
+	max: 5,
+	message: {error: "Too many register attempts. Please try again later."}
+})
 
 // Ping
 router.get('/', async(req, res) => {
@@ -10,7 +22,7 @@ router.get('/', async(req, res) => {
 
 // User Create
 
-router.post	('/user/create', async(req, res) => {
+router.post	('/user/create', registerRateLimit, async(req, res) => {
 	try {
 		const user = new User(req.body)
 		await user.save()
@@ -24,7 +36,7 @@ router.post	('/user/create', async(req, res) => {
 
 // User Login
 
-router.post('/user/login', async(req, res) => {
+router.post('/user/login', loginRateLimit, async(req, res) => {
 	try {
 		const username = req.body.username
 		const password = req.body.password
