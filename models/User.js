@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose")
+const validator = require("validator")
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
 
 const userSchema = mongoose.Schema({
   username: {
@@ -24,7 +24,7 @@ const userSchema = mongoose.Schema({
     lowercase: true,
     validate: (value) => {
       if (!validator.isEmail(value)) {
-        throw new Error({ error: "Invalid Email Address" });
+        throw new Error({ error: "Invalid Email Address" })
       }
     },
   },
@@ -37,41 +37,41 @@ const userSchema = mongoose.Schema({
       },
     },
   ],
-});
+})
 
 userSchema.pre("save", async function (next) {
   //hashing the password
-  const user = this;
+  const user = this
   if (user.isModified("password")) {
-    user.username = user.username.toLowerCase();
-    user.password = await bcrypt.hash(user.password, 8);
+    user.username = user.username.toLowerCase()
+    user.password = await bcrypt.hash(user.password, 8)
   }
-});
+})
 
 userSchema.statics.findByCredentials = async (username, password) => {
-  const user = await User.findOne({ username });
+  const user = await User.findOne({ username })
   if (!user) {
-    return null;
+    return null
   }
-  const isPasswordMatch = await bcrypt.compare(password, user.password);
+  const isPasswordMatch = await bcrypt.compare(password, user.password)
   if (!isPasswordMatch) {
-    return null;
+    return null
   }
 
-  return user;
-};
+  return user
+}
 
 userSchema.statics.deleteUser = async (userID) => {
-  var id = new mongoose.Types.ObjectId(userID);
+  var id = new mongoose.Types.ObjectId(userID)
 
-  const user = await User.deleteOne({ _id: id });
+  const user = await User.deleteOne({ _id: id })
 
   if (!user) {
-    return false;
+    return false
   }
 
-  return true;
-};
+  return true
+}
 
 // Tokens
 
@@ -84,9 +84,9 @@ userSchema.statics.createAccessToken = async (userID) => {
     {
       expiresIn: "1h", //Test Expiry Time
     }
-  );
-  return accessToken;
-};
+  )
+  return accessToken
+}
 
 userSchema.statics.createRefreshToken = async (userID) => {
   const refreshToken = jwt.sign(
@@ -97,50 +97,50 @@ userSchema.statics.createRefreshToken = async (userID) => {
     {
       expiresIn: "1d", //Test Expiry Time
     }
-  );
+  )
 
   try {
     await User.updateOne(
       { _id: userID },
       { $push: { tokens: { token: refreshToken } } }
-    );
+    )
   } catch (error) {
-    throw new Error({ error: "Failed to create refresh token." });
+    throw new Error({ error: "Failed to create refresh token." })
   }
 
-  return refreshToken;
-};
+  return refreshToken
+}
 
 userSchema.statics.deleteRefreshToken = async (userID, refreshToken) => {
   try {
     return await User.updateOne(
       { _id: userID },
       { $pull: { tokens: { token: refreshToken } } }
-    );
+    )
   } catch (error) {
-    throw new Error({ error: "Failed to delete refresh token." });
+    throw new Error({ error: "Failed to delete refresh token." })
   }
-};
+}
 
 userSchema.statics.deleteAllRefreshTokens = async (userID) => {
   try {
-    return await User.updateOne({ _id: userID }, { $set: { tokens: [] } });
+    return await User.updateOne({ _id: userID }, { $set: { tokens: [] } })
   } catch (error) {
-    throw new Error({ error: "Failed to delete all refresh token." });
+    throw new Error({ error: "Failed to delete all refresh token." })
   }
-};
+}
 
 userSchema.statics.checkRefreshToken = async (userID, refreshToken) => {
-  const user = await User.findOne({ _id: userID });
+  const user = await User.findOne({ _id: userID })
   if (!user) {
-    return null;
+    return null
   }
   try {
-    return await user.tokens.some((token) => token.token === refreshToken);
+    return await user.tokens.some((token) => token.token === refreshToken)
   } catch (error) {
-    return null;
+    return null
   }
-};
+}
 
-const User = mongoose.model("User", userSchema);
-module.exports = User;
+const User = mongoose.model("User", userSchema)
+module.exports = User

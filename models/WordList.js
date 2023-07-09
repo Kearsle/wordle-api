@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose")
 
 const wordlistSchema = mongoose.Schema({
     title: {
@@ -18,7 +18,7 @@ const wordlistSchema = mongoose.Schema({
         },
       },
     ],
-});
+})
 
 wordlistSchema.statics.addWord = async (wordlistTitle, word) => {
     // is the word 5 characters long
@@ -27,9 +27,9 @@ wordlistSchema.statics.addWord = async (wordlistTitle, word) => {
     }
 
     // Is the wordlist title correct and word is unique
-    const wordlist = await WordList.findOne({ title: wordlistTitle, 'words.word': { $ne: word } });
+    const wordlist = await WordList.findOne({ title: wordlistTitle, 'words.word': { $ne: word } })
     if (!wordlist) {
-        return false;
+        return false
     }
 
     // Add word
@@ -37,14 +37,24 @@ wordlistSchema.statics.addWord = async (wordlistTitle, word) => {
       await WordList.updateOne(
         { title: wordlistTitle },
         { $push: { words: { word: word.toLowerCase() } } }
-      );
+      )
       return true
     } catch (error) {
       return false
     }
-  };
+  }
 
-const WordList = mongoose.model("WordList", wordlistSchema);
-module.exports = WordList;
+wordlistSchema.statics.getRandomWord = async (wordlistTitle) => {
+  const wordlist = await WordList.findOne({title : wordlistTitle})
+  if (!wordlist) {
+    return null
+  }
+  const num = Math.floor(Math.random() * wordlist.words.length)
+  const word = wordlist.words[num].word
+  return(word)
+}
+
+const WordList = mongoose.model("WordList", wordlistSchema)
+module.exports = WordList
 
 
