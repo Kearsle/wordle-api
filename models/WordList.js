@@ -21,6 +21,11 @@ const wordlistSchema = mongoose.Schema({
 });
 
 wordlistSchema.statics.addWord = async (wordlistTitle, word) => {
+    // is the word 5 characters long
+    if (word.length != 5) {
+      return false
+    }
+
     // Is the wordlist title correct and word is unique
     const wordlist = await WordList.findOne({ title: wordlistTitle, 'words.word': { $ne: word } });
     if (!wordlist) {
