@@ -47,15 +47,36 @@ router.post	('/wordle/wordlist/addWord', async(req, res) => {
 })
 
 router.get ('/wordle/wordlist/getRandomWord', async(req, res) => {
+    const wordlistTitle = req.body.title
+    const word = await WordList.getRandomWord(wordlistTitle)
+    if(!word)
+    {
+        return res.status(401).send({error: "Wordlist is not valid."})
+    }
+    res.status(201).send({word: word, success: `Taken from ${wordlistTitle}`})
+})
+
+// Word of the Day
+
+router.post ('/wordle/wordoftheday/new', async(req, res) => {
+    const wordlistTitle =  req.body.title
+    const word = await WordList.getRandomWord(wordlistTitle)
+    if(!word)
+    {
+        return res.status(401).send({error: "Wordlist is not valid."})
+    }
+    // delete current word and save new word
+    if (!await WordOfTheDay.deleteWordOfTheDay()) {
+        return res.status(401).send({error: "Failed to delete current word of the day."})
+    }
     try {
-        const wordlistTitle = req.body.title
-        const word = await WordList.getRandomWord(wordlistTitle)
-        if(!word)
-        {
-            return res.status(401).send({error: "Wordlist is not valid."})
-        }
-        res.status(201).send({word: word, success: `Taken from ${wordlistTitle}`})
-    } catch(error) {
-        res.status(401).send({error: error})
+        const wordOfTheDay = new WordOfTheDay({word: word})
+        await wordOfTheDay.save()
+        console.log("Status 201: New word of the day.")
+        res.status(201).send({success: "New word of the day.", word: word})
+    } catch (error) {
+        console.log("Status 400: Failed to set new Word of the Day.")
+        console.log(error)
+        res.status(400).send({error: "Failed to set new Word of the Day."})
     }
 })

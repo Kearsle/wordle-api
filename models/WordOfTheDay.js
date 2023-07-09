@@ -1,9 +1,5 @@
-// database, if the lastest one added is a day old then add a new one from the wordlist
-
-// Needs to check if valid word of the day
-// Needs add new word of the day
-
 const mongoose = require('mongoose')
+const moment = require('moment')
 
 const wordOfTheDaySchema = mongoose.Schema({
     word: {
@@ -12,13 +8,21 @@ const wordOfTheDaySchema = mongoose.Schema({
     },
     createdOn: {
         type: Date,
-        default: Date.now
+        default: moment().toDate()
     },
     expiredAt: {
         type: Date,
-        default: Date.now + (24 * 60 * 60 * 1000)
+        default: moment().add(1, 'day').toDate()
     }
 })
+
+wordOfTheDaySchema.statics.deleteWordOfTheDay = async() => {
+    const deletedWordOfTheDay = await WordOfTheDay.deleteMany()
+    if (!deletedWordOfTheDay) {
+        return false
+    }
+    return true
+}
 
 const WordOfTheDay = mongoose.model('WordOfTheDay', wordOfTheDaySchema)
 module.exports = WordOfTheDay
