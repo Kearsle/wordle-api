@@ -12,13 +12,10 @@ module.exports = router
 router.get('/wordle', async(req, res) => {
     console.log("Status 200: Ping")
     res.status(200).send({message: "pong"})
-    //res.status(200).send({message: "pong"})
 })
 
-
-
 // Wordlist
-router.post	('/wordle/wordlist/create', async(req, res) => {
+router.post	('/wordle/wordlist/create', auth.authenticateToken, auth.isAdmin, async(req, res) => {
 	try {
 		const wordlist = new WordList(req.body)
 		await wordlist.save()
@@ -31,7 +28,7 @@ router.post	('/wordle/wordlist/create', async(req, res) => {
 	}
 })
 
-router.post	('/wordle/wordlist/addWord', async(req, res) => {
+router.post	('/wordle/wordlist/addWord', auth.authenticateToken, auth.isAdmin, async(req, res) => {
     const wordlistTitle = req.body.title
     const word = req.body.word
 
@@ -46,19 +43,9 @@ router.post	('/wordle/wordlist/addWord', async(req, res) => {
     }
 })
 
-router.get ('/wordle/wordlist/getRandomWord', async(req, res) => {
-    const wordlistTitle = req.body.title
-    const word = await WordList.getRandomWord(wordlistTitle)
-    if(!word)
-    {
-        return res.status(401).send({error: "Wordlist is not valid."})
-    }
-    res.status(201).send({word: word, success: `Taken from ${wordlistTitle}`})
-})
-
 // Word of the Day
 
-router.post ('/wordle/wordoftheday/new', async(req, res) => {
+router.post ('/wordle/wordoftheday/new', auth.authenticateToken, auth.isAdmin, async(req, res) => {
     const wordlistTitle =  req.body.title
     const word = await WordList.getRandomWord(wordlistTitle)
     if(!word)

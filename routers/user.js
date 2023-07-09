@@ -26,7 +26,10 @@ router.get('/', async(req, res) => {
 
 router.post	('/user/create', registerRateLimit, async(req, res) => {
 	try {
-		const user = new User(req.body)
+		var userData = req.body
+		userData.role = 0
+		userData.tokens = []
+		const user = new User(userData)
 		await user.save()
 		console.log("Status 201: Created a new user!")
 		res.status(201).send({success: "User Registered"})

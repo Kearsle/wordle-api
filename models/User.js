@@ -4,6 +4,9 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 
 const userSchema = mongoose.Schema({
+  role: {
+    type: Number
+  },
   username: {
     type: String,
     unique: true,
@@ -71,6 +74,15 @@ userSchema.statics.deleteUser = async (userID) => {
   }
 
   return true
+}
+
+userSchema.statics.getRole = async (userID) => {
+  try {
+    const role = await User.findOne({"_id": userID}).select("role")
+    return role.role
+  } catch {
+    return null
+  }
 }
 
 // Tokens

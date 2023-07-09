@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const User = require('../models/User')
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
@@ -17,6 +18,22 @@ function authenticateToken(req, res, next) {
     })
 }
 
+async function isAdmin(req, res, next) {
+    const userID = req.userToken.userID
+    if (!userID) {
+        return res.status(400).send({error: "Failed to validate token."})
+    }
+    const role = await User.getRole(userID)
+    if (role == null) {
+        return res.status(400).send({error: "Failed to validate token."})
+    }
+    if (role < 1) {
+        return res.status(400).send({error: "You do not have permission to do this action."})
+    }
+    next()
+}
+
 module.exports = {
-    authenticateToken
+    authenticateToken,
+    isAdmin
 }

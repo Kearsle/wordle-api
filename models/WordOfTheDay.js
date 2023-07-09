@@ -8,11 +8,11 @@ const wordOfTheDaySchema = mongoose.Schema({
     },
     createdOn: {
         type: Date,
-        default: moment().toDate()
+        default: moment().utc()
     },
     expiredAt: {
         type: Date,
-        default: moment().add(1, 'day').toDate()
+        default: moment().utc().endOf('day')
     }
 })
 
