@@ -136,9 +136,6 @@ userSchema.statics.checkRefreshToken = async (userID, refreshToken) => {
     return null;
   }
   try {
-    console.log(
-      await user.tokens.some((token) => token.token === refreshToken)
-    );
     return await user.tokens.some((token) => token.token === refreshToken);
   } catch (error) {
     return null;
