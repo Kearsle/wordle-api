@@ -61,8 +61,7 @@ router.post('/user/login', loginRateLimit, async(req, res) => {
 		res.status(200).send({userID: userID, accessToken: accessToken, refreshToken: refreshToken})
 	} catch (errors) {
 		console.log(`Status 400: Login failed for ${req.body.username}`)
-		console.log(errors)
-		res.status(400).send({error})
+		res.status(400).send({errors})
 	}
 })
 
