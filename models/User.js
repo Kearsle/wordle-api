@@ -11,6 +11,7 @@ const userSchema = mongoose.Schema({
     type: String,
     unique: true,
     minLength: 3,
+    maxLength: 16,
     required: true,
     trim: true,
   },
@@ -18,6 +19,7 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
     minLength: 5,
+    maxLength: 20,
     trim: true,
   },
   email: {
@@ -151,6 +153,24 @@ userSchema.statics.checkRefreshToken = async (userID, refreshToken) => {
     return await user.tokens.some((token) => token.token === refreshToken)
   } catch (error) {
     return null
+  }
+}
+
+userSchema.statics.usernameAvailablity = async (username) => {
+  const user = await User.findOne({username: username})
+  if (user) {
+    return false
+  } else {
+    return true
+  }
+}
+
+userSchema.statics.emailAvailablity = async (email) => {
+  const user = await User.findOne({email: email})
+  if (user) {
+    return false
+  } else {
+    return true
   }
 }
 

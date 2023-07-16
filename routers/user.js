@@ -7,12 +7,12 @@ const auth = require('../middleware/auth')
 
 const loginRateLimit = rateLimit({
 	windowMs: 2 * 60 * 1000,
-	max: 10,
+	max: 1000000, // change to 10
 	message: {error: "Too many login attempts. Please try again later."}
 })
 const registerRateLimit = rateLimit({
 	windowMs: 5 * 60 * 1000,
-	max: 5,
+	max: 50000000, // change to 5
 	message: {error: "Too many register attempts. Please try again later."}
 })
 
@@ -29,13 +29,28 @@ router.post	('/user/create', registerRateLimit, async(req, res) => {
 		var userData = req.body
 		userData.role = 0
 		userData.tokens = []
+		// Check if username or email is taken
+		if (!userData.username || !userData.email) {
+			return res.status(400).send({error: "Failed to create a new user!"})
+		}
+		const usernameAvailable = await User.usernameAvailablity(userData.username)
+		const emailAvailable = await User.emailAvailablity(userData.email)
+
+		if (!usernameAvailable && !emailAvailable) {
+			return res.status(401).send({error: "Username and Email is already used."})
+		} else if (!usernameAvailable) {
+			return res.status(401).send({error: "Username is already used."})
+		} else if (!emailAvailable) {
+			return res.status(401).send({error: "Email is already used."})
+		}
+
 		const user = new User(userData)
 		await user.save()
 		console.log("Status 201: Created a new user!")
 		res.status(201).send({success: "User Registered"})
 	} catch(errors) {
 		console.log("Status 400: Failed to create a new user!")
-		res.status(400).send({error: "Failed to create a new user!"})
+		res.status(400).send({error: "Failed to create account."})
 	}
 })
 
