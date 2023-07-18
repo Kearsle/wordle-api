@@ -4,6 +4,7 @@ const User = require('../models/User')
 const router = express.Router()
 const rateLimit = require('express-rate-limit')
 const auth = require('../middleware/auth')
+const { access } = require('fs')
 
 const loginRateLimit = rateLimit({
 	windowMs: 2 * 60 * 1000,
@@ -73,9 +74,12 @@ router.post('/user/login', loginRateLimit, async(req, res) => {
 		const refreshToken = await User.createRefreshToken(userID)
 
 		console.log(`Status 200: ${username} successfully logged in!`)
+		res.cookie("accessToken", accessToken, {httpOnly: true, sameSite: 'none', secure: true})
+		res.cookie("refreshToken", refreshToken, {httpOnly: true, sameSite: 'none', secure: true, maxAge: 24 * 60 * 60 * 1000})
 		res.status(200).send({userID: userID, accessToken: accessToken, refreshToken: refreshToken})
 	} catch (errors) {
 		console.log(`Status 400: Login failed for ${req.body.username}`)
+		console.log(errors)
 		res.status(400).send({errors})
 	}
 })
@@ -84,7 +88,7 @@ router.post('/user/login', loginRateLimit, async(req, res) => {
 
 router.delete('/user/logout', auth.authenticateToken, async (req, res) => {
 	try {
-		const refreshToken = req.body.refreshToken
+		const refreshToken = req.cookies.refreshToken
 		const userID = req.userToken.userID
 		if (!refreshToken) {
 			return res.status(401).send({error: "Refresh Token was not sent."})
@@ -93,9 +97,12 @@ router.delete('/user/logout', auth.authenticateToken, async (req, res) => {
 			return res.status(403).send({error: "Refresh Token Incorrect."})
 		}
 		await User.deleteRefreshToken(userID, refreshToken)
+		res.cookie("accessToken", "", {httpOnly: true, sameSite: 'none', secure: true, expires: new Date(0)})
+		res.cookie("refreshToken", "", {httpOnly: true, sameSite: 'none', secure: true, expires: new Date(0)})
 		res.status(200).send({success: "User logged out."})
 	} catch (errors) {
-		res.status(400).send(send({errors}))
+		console.log(errors)
+		res.status(400).send({errors})	
 	}
 })
 
@@ -135,27 +142,26 @@ router.delete('/user/delete', auth.authenticateToken, async (req, res) => {
 
 // New Access Token
 
-router.post('/user/AccessToken', async (req, res) => {
+router.get('/user/loggedIn', async (req, res) => {
 	try {
-		const refreshToken = req.body.refreshToken
-		const userID = req.body.userID
+		const refreshToken = req.cookies.refreshToken
 
 		if (!refreshToken) {
-			return res.status(401).send("No refresh token supplied.")
-		}
-		if (!await User.checkRefreshToken(userID, refreshToken)) {
-			return res.status(403).send("Authorization denied.")
+			return res.send(false)
 		}
 		jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (error, userToken) => {
 			if (error) {
-				return res.status(403).send("Authorization denied")
+				return res.send(false)
+			}
+			if (!await User.checkRefreshToken(userToken.userID, refreshToken)) {
+				return res.send(false)
 			}
 			const accessToken = await User.createAccessToken(userToken.userID)
-			res.status(200).send({accessToken: accessToken})
+			res.cookie("accessToken", accessToken, {httpOnly: true, sameSite: 'none', secure: true})
+			res.send(true)
 		})
 	} catch (errors) {
-		console.log(errors)
-		res.status(400).send({errors})
+		res.send(false)
 	}
 })
 

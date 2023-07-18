@@ -3,7 +3,11 @@ const User = require('../models/User')
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
+    var token = authHeader && authHeader.split(' ')[1]
+
+    if (!token) {
+        token = req.cookies.accessToken
+    }
 
     if (!token) {
         return res.status(401).send({error: "No authorization token supplied."})
