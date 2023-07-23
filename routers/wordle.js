@@ -18,6 +18,9 @@ router.get('/wordle', async(req, res) => {
 router.post	('/wordle/wordlist/create', auth.authenticateToken, auth.isAdmin, async(req, res) => {
 	try {
 		const wordlist = new WordList(req.body)
+        if (!req.body.title) {
+            return res.status(400).send({error: "Failed to create a new wordlist!"})
+        }
 		await wordlist.save()
 		console.log(`Status 201: Created a new ${req.body.title}!`)
 		res.status(201).send({success: `${req.body.title} created.`})
@@ -43,6 +46,29 @@ router.post	('/wordle/wordlist/addWord', auth.authenticateToken, auth.isAdmin, a
     }
 })
 
+router.get ('/wordle/wordlists', auth.authenticateToken, async(req, res) => {
+    // Return all active wordlists aka active games
+
+    try {
+		const wordlists = await WordList.getActiveWordlists()
+		if (!wordlists) {
+			return res.status(401).send({error: "Failed to find any active wordlists"})
+		}
+		res.status(200).send(wordlists)
+	} catch (error) {
+		res.status(400).send(error)
+	}
+})
+
+router.get ('/wordle/wordlist/:wordlist', auth.authenticateToken, async(req, res) => {
+    const wordlistID = req.params.wordlist
+    const wordlist = await WordList.getWordlistTitle(wordlistID)
+    if (!wordlist) {
+        return res.status(404).send({error: "No wordlist found."})
+    }
+    res.status(200).send({wordlist})
+})
+
 // Word of the Day
 
 router.post ('/wordle/wordoftheday/new', auth.authenticateToken, auth.isAdmin, async(req, res) => {
@@ -53,7 +79,7 @@ router.post ('/wordle/wordoftheday/new', auth.authenticateToken, auth.isAdmin, a
         return res.status(401).send({error: "Wordlist is not valid."})
     }
     // delete current word and save new word
-    if (!await WordOfTheDay.deleteWordOfTheDay()) {
+    if (!await WordOfTheDay.deleteWordOfTheDay(wordlistTitle)) {
         return res.status(401).send({error: "Failed to delete current word of the day."})
     }
     try {
@@ -66,4 +92,27 @@ router.post ('/wordle/wordoftheday/new', auth.authenticateToken, auth.isAdmin, a
         console.log(error)
         res.status(400).send({error: "Failed to set new Word of the Day."})
     }
+})
+
+// Game
+router.post('/wordle/guess', auth.authenticateToken, async(req, res) => {
+    // get guess, return array of b, y or green for each character passed
+    const wordlistTitle = req.body.wordlistTitle
+    const guess = req.body.guess
+    // Check if guess is valid
+    if (guess.length != 5) {
+        return res.status(401).send({error: "Guess must be 5 characters long"})
+    }
+    // Check if wordlist is correct
+    const wordlist = await WordList.getWordlistTitle(wordlistID)
+    if (!wordlist) {
+        return res.status(404).send({error: "No wordlist found."})
+    }
+
+    // Check if a current word of the day is there, if not add one
+
+    // check if the guess won
+
+    // go through each letter to see if its either a correct letter and in the correct spot (green) else a correct letter but not in that spot (yellow), else the letter is wrong (black). 
+
 })
