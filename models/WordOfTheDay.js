@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const moment = require('moment')
-const { ObjectId } = require('mongodb')
 
 const wordOfTheDaySchema = mongoose.Schema({
     word: {
@@ -22,7 +21,7 @@ const wordOfTheDaySchema = mongoose.Schema({
 })
 
 wordOfTheDaySchema.statics.deleteWordOfTheDay = async(wordlistTitle) => {
-    const deletedWordOfTheDay = await WordOfTheDay.deleteMany(wordlistTitle: wordlistTitle)
+    const deletedWordOfTheDay = await WordOfTheDay.deleteMany({wordlistTitle: wordlistTitle})
     if (!deletedWordOfTheDay) {
         return false
     }
@@ -30,9 +29,17 @@ wordOfTheDaySchema.statics.deleteWordOfTheDay = async(wordlistTitle) => {
 }
 
 wordOfTheDaySchema.statics.checkWordOfTheDay = async(wordlistTitle) => {
-    const wordOfTheDay = await WordOfTheDay.findOne(expiredAt: {
-        moment().utc() < 
-    })
+    const wordOfTheDay = await WordOfTheDay.findOne({wordlistTitle: wordlistTitle, expiredAt: { $gt: moment().utc() }})
+    if (wordOfTheDay) {
+        return true
+    } else {
+        return false
+    }
+}
+
+wordOfTheDaySchema.statics.getWordOfTheDay = async(wordlistTitle) => {
+    const wordOfTheDay = await WordOfTheDay.findOne({wordlistTitle: wordlistTitle, expiredAt: { $gt: moment().utc() }})
+    return wordOfTheDay
 }
 
 const WordOfTheDay = mongoose.model('WordOfTheDay', wordOfTheDaySchema)

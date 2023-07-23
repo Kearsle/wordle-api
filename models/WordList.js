@@ -54,8 +54,12 @@ wordlistSchema.statics.getRandomWord = async (wordlistTitle) => {
     return null
   }
   const num = Math.floor(Math.random() * wordlist.words.length)
-  const word = wordlist.words[num].word
-  return(word)
+  try {
+    const word = wordlist.words[num].word
+    return(word)
+  } catch {
+    return null
+  }
 }
 
 wordlistSchema.statics.getActiveWordlists = async () => {
@@ -64,12 +68,22 @@ wordlistSchema.statics.getActiveWordlists = async () => {
   return wordlists
 }
 
-wordlistSchema.statics.getWordlistTitle = async (wordlistID) => {
+wordlistSchema.statics.getWordlistFromID = async (wordlistID) => {
   // return wordlist title if found else null
   try {
     var id = new mongoose.Types.ObjectId(wordlistID)
-    const wordlistTitle = await WordList.findOne({_id: id, active: true}).select('title')
-    return wordlistTitle
+    const wordlist = await WordList.findOne({_id: id, active: true})
+    return wordlist
+  } catch {
+    return null
+  }
+}
+
+wordlistSchema.statics.getWordlistFromTitle = async (wordlistTitle) => {
+  // return wordlist title if found else null
+  try {
+    const wordlist = await WordList.findOne({title: wordlistTitle, active: true})
+    return wordlist
   } catch {
     return null
   }
