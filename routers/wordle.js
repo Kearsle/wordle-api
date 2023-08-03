@@ -226,11 +226,9 @@ router.post("/wordle/guess", auth.authenticateToken, async (req, res) => {
     return res.status(400).send({ error: "Game is already over" });
   }
 
-  return res
-    .status(200)
-    .send({
-      success: "word of the day is valid.",
-      won: won,
-      colourArray: colourArray,
-    });
+  return res.status(200).send({
+    success: "word of the day is valid.",
+    won: won,
+    colourArray: colourArray,
+  });
 });

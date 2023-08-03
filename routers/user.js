@@ -89,13 +89,11 @@ router.post("/user/login", loginRateLimit, async (req, res) => {
       secure: true,
       maxAge: 24 * 60 * 60 * 1000,
     });
-    res
-      .status(200)
-      .send({
-        userID: userID,
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-      });
+    res.status(200).send({
+      userID: userID,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    });
   } catch (errors) {
     console.log(`Status 400: Login failed for ${req.body.username}`);
     console.log(errors);
