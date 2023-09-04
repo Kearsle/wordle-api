@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const Wordle = require("../models/Wordle");
 const WordList = require("../models/WordList");
 const WordOfTheDay = require("../models/WordOfTheDay");
 const auth = require("../middleware/auth");
@@ -194,12 +193,8 @@ router.post("/wordle/guess", auth.authenticateToken, async (req, res) => {
   var won;
   if (wordOfTheDay.word === guess) {
     won = true;
-    console.log("When adding saved progress. Need to stop all if saved.");
   } else {
     won = false;
-    console.log(
-      "When adding saved progress. Need to increment guesses and save the guesses."
-    );
   }
 
   // decide the colours for each of the guessed letters
